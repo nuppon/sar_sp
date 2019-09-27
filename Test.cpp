@@ -6,7 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <string.h>
-#include "matplotlibcpp.h"
+//#include "matplotlibcpp.h"
 
 using namespace std;
 
@@ -148,6 +148,7 @@ struct Measurement {
 
 class TargetArea {
    public:
+    uint32_t imageWidth, imageHeight, imageDepth;
     vector<Point> points;
     TargetArea(){}
     TargetArea(Point p1, Point p2, double cellSize) {
@@ -155,25 +156,23 @@ class TargetArea {
         if (p1.x > p2.x) swap(p1.x, p2.x);
         if (p1.y > p2.y) swap(p1.y, p2.y);
         if (p1.z > p2.z) swap(p1.z, p2.z);
+        
+        imageWidth = (p2.x - p1.x) / cellSize;
+        imageHeight = (p2.y - p1.y) / cellSize;
+        imageDepth = (p2.z - p1.z) / cellSize;
 
         if (p2.z == p1.z){
-            points.reserve(
-                ((p2.x - p1.x) * (p2.y - p1.y) / (cellSize*cellSize)));
-                cout << 
-                ((p2.x - p1.x) * (p2.y - p1.y) / (cellSize*cellSize)) << endl;
+            points.reserve(imageWidth*imageHeight);
         } else {
-            points.reserve(
-                ((p2.x - p1.x) * (p2.y - p1.y) * (p2.z - p1.z) / (cbrt(cellSize))));
+            points.reserve(imageWidth*imageHeight*imageDepth);
         }
-        for (float x = p1.x; (p2.x - x) >= numeric_limits<float>::epsilon(); x += cellSize) {
-            for (float y = p1.y; (p2.y - y) >= numeric_limits<float>::epsilon(); y += cellSize) {
-                if (p1.z != p2.z) {
-                    for (float z = p1.z; (p2.z - z) >= numeric_limits<float>::epsilon(); z += cellSize) {
-                        points.push_back({x, y, z});
-                    }                  
-                } else {
-                    points.push_back({x, y, p1.z});
-                }
+        
+        for (float x = p1.x; (p2.x - x) >= -numeric_limits<float>::epsilon(); x += cellSize) {
+            for (float y = p1.y; (p2.y - y) >= -numeric_limits<float>::epsilon(); y += cellSize) {
+                for (float z = p1.z; (p2.z - z) >= -numeric_limits<float>::epsilon(); z += cellSize) {
+                    points.push_back({x, y, z});
+                    cout << x << " " << y << " " << z << endl;
+                }                  
             }
         }
     }
